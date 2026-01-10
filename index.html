@@ -277,7 +277,7 @@
             color: white;
             text-decoration: none;
             border-radius: 6px;
-            font-weight:600;
+            font-weight: 600;
             transition: all 0.3s;
         }
 
@@ -417,7 +417,9 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    showStatus(`✅ Success! Your code has been generated and deployed. <a href="${data.file_url}" target="_blank">Click here to view it →</a>`, 'success');
+                    showStatus(`✅ Success! File created: <code>${data.file_url.split('/').pop()}</code><br>
+                        ⏰ <strong>Please wait 1-2 minutes</strong> for GitHub Pages to deploy.<br>
+                        <button onclick="window.open('${data.file_url}', '_blank')" style="margin-top:10px;padding:8px 15px;background:#28a745;color:white;border:none;border-radius:5px;cursor:pointer;font-size:14px;">🔗 Open Output (wait 2 min first)</button>`, 'success');
                     
                     // Add to outputs list
                     outputs.unshift({
@@ -431,6 +433,14 @@
                     
                     // Update gallery
                     updateGallery();
+                    
+                    // Optional: Auto-open after 2 minutes
+                    setTimeout(() => {
+                        const openNow = confirm('Your output should be ready now! Open it?');
+                        if (openNow) {
+                            window.open(data.file_url, '_blank');
+                        }
+                    }, 120000); // 2 minutes
                     
                     // Clear prompt (optional)
                     // document.getElementById('prompt').value = '';
