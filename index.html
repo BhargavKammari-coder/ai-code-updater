@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Code Generator - Versioned</title>
+    <title>AI Code Generator</title>
     <style>
         * {
             margin: 0;
@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
@@ -40,47 +40,30 @@
             opacity: 0.95;
         }
 
-        .version-badge {
-            display: inline-block;
-            background: rgba(255,255,255,0.3);
-            padding: 10px 20px;
-            border-radius: 20px;
-            margin-top: 15px;
-            font-size: 1.1em;
-            font-weight: bold;
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-
-        .generator-box, .preview-box {
+        .generator-box {
             background: white;
-            padding: 30px;
+            padding: 40px;
             border-radius: 16px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 40px;
+            animation: slideIn 0.5s ease-out;
         }
 
-        h2 {
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .generator-box h2 {
             color: #333;
             margin-bottom: 20px;
             font-size: 1.8em;
-        }
-
-        .context-info {
-            background: #e7f3ff;
-            border-left: 4px solid #2196F3;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-        }
-
-        .context-info.active {
-            background: #d4edda;
-            border-left-color: #28a745;
         }
 
         .input-group {
@@ -116,26 +99,45 @@
             display: flex;
             gap: 15px;
             margin-top: 20px;
-            flex-wrap: wrap;
         }
 
         button {
             flex: 1;
-            min-width: 150px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 18px 30px;
-            font-size: 16px;
+            padding: 18px 40px;
+            font-size: 18px;
             font-weight: 600;
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.2);
+            transition: left 0.5s;
+        }
+
+        button:hover:before {
+            left: 100%;
         }
 
         button:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
 
         button:disabled {
@@ -144,8 +146,9 @@
             transform: none;
         }
 
-        .reset-btn {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        .clear-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            flex: 0.5;
         }
 
         .status {
@@ -153,6 +156,12 @@
             padding: 15px 20px;
             border-radius: 10px;
             display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .status.show {
@@ -177,54 +186,120 @@
             border-left: 4px solid #dc3545;
         }
 
-        .preview-box {
-            max-height: 800px;
-            overflow-y: auto;
+        .status a {
+            color: inherit;
+            font-weight: bold;
+            text-decoration: underline;
         }
 
-        .version-item {
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-            transition: all 0.3s;
+        .gallery {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
 
-        .version-item:hover {
-            background: #e9ecef;
-            transform: translateX(5px);
+        .gallery h2 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.8em;
         }
 
-        .version-item strong {
-            color: #667eea;
+        .gallery-subtitle {
+            color: #666;
+            margin-bottom: 30px;
             font-size: 1.1em;
         }
 
-        .version-item .prompt {
-            margin: 10px 0;
-            color: #333;
+        .output-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
         }
 
-        .version-item .meta {
+        .output-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s;
+            background: #fafafa;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .output-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .output-card:hover:before {
+            transform: scaleX(1);
+        }
+
+        .output-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .output-card h3 {
+            margin: 0 0 15px 0;
+            color: #667eea;
+            font-size: 1.2em;
+        }
+
+        .output-card p {
             color: #666;
-            font-size: 0.9em;
+            font-size: 14px;
+            margin: 8px 0;
+            line-height: 1.5;
         }
 
-        .version-item a {
+        .output-card .timestamp {
+            color: #999;
+            font-size: 13px;
+            font-style: italic;
+        }
+
+        .output-card a {
             display: inline-block;
-            margin-top: 10px;
-            padding: 8px 15px;
-            background: #667eea;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             text-decoration: none;
-            border-radius: 5px;
-            font-size: 14px;
+            border-radius: 6px;
+            font-weight: 600;
             transition: all 0.3s;
         }
 
-        .version-item a:hover {
-            background: #5568d3;
+        .output-card a:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 1.2em;
         }
 
         .spinner {
@@ -241,9 +316,25 @@
             to { transform: rotate(360deg); }
         }
 
-        @media (max-width: 1024px) {
-            .main-content {
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .generator-box, .gallery {
+                padding: 25px;
+            }
+
+            .output-list {
                 grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .clear-btn {
+                flex: 1;
             }
         }
     </style>
@@ -252,163 +343,64 @@
     <div class="container">
         <header>
             <h1>🤖 AI Code Generator</h1>
-            <p class="subtitle">Build iteratively - each version builds on the previous!</p>
-            <div class="version-badge">
-                📦 Current Version: <span id="currentVersion">v0</span>
-            </div>
+            <p class="subtitle">Describe what you want, and AI will create it instantly!</p>
         </header>
         
-        <div class="main-content">
-            <div class="generator-box">
-                <h2>✨ Create Next Version</h2>
-                
-                <div id="contextInfo" class="context-info active">
-                    <strong>🔄 Iterative Mode Active</strong><br>
-                    Each generation creates a new version file and builds on the previous code.
-                </div>
-
-                <div class="input-group">
-                    <label for="prompt">What would you like to add or modify?</label>
-                    <textarea 
-                        id="prompt" 
-                        placeholder="Examples:
-
-First (v1): 'Create a red button that says Click Me'
-Then (v2): 'Add a blue heading above the button'  
-Then (v3): 'Make the button bigger with hover effect'
-Then (v4): 'Add a footer with contact info'
-
-Each prompt creates a new version file!"
-                    ></textarea>
-                </div>
-                
-                <div class="button-group">
-                    <button onclick="generateNextVersion()" id="generateBtn">
-                        <span id="btnText">🚀 Generate Next Version</span>
-                    </button>
-                    <button onclick="startNewProject()" class="reset-btn">
-                        🆕 Start New Project
-                    </button>
-                </div>
-                
-                <div id="status" class="status"></div>
+        <div class="generator-box">
+            <h2>✨ Generate New Code</h2>
+            <div class="input-group">
+                <label for="prompt">What would you like to create?</label>
+                <textarea 
+                    id="prompt" 
+                    placeholder="Example: Create a beautiful contact form with name, email, and message fields. Add a gradient background and smooth animations."
+                >Create a colorful pricing card with three tiers (Basic, Pro, Enterprise) featuring different prices and feature lists</textarea>
             </div>
+            
+            <div class="button-group">
+                <button onclick="generateCode()" id="generateBtn">
+                    <span id="btnText">🚀 Generate Code</span>
+                </button>
+                <button onclick="clearPrompt()" class="clear-btn">
+                    🗑️ Clear
+                </button>
+            </div>
+            
+            <div id="status" class="status"></div>
+        </div>
 
-            <div class="preview-box">
-                <h2>📚 Version History</h2>
-                <div id="versionHistory">
-                    <p style="color: #999; text-align: center; padding: 40px;">
-                        No versions yet. Create your first version!
-                    </p>
+        <div class="gallery">
+            <h2>📁 Generated Outputs</h2>
+            <p class="gallery-subtitle">Your AI-generated creations will appear here. Click to view them live!</p>
+            <div id="outputList" class="output-list">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <p>No outputs yet. Generate your first code above!</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Replace with your actual webhook URL
+        // IMPORTANT: Replace this with your actual Make.com webhook URL
         const WEBHOOK_URL = 'https://hook.eu1.make.com/fhrnbnq3n6mwz06lglstqwty5xn0pzys';
         
-        // Project state
-        let currentVersion = 0;
-        let projectId = null;
-        let versions = [];
-        let latestCode = '';
+        // Store generated outputs
+        let outputs = [];
 
-        // Load saved state
-        window.onload = () => {
-            loadProject();
-        };
-
-        function loadProject() {
-            const saved = localStorage.getItem('aiCodeProject');
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    currentVersion = data.currentVersion || 0;
-                    projectId = data.projectId || generateProjectId();
-                    versions = data.versions || [];
-                    latestCode = data.latestCode || '';
-                    updateUI();
-                } catch (e) {
-                    console.error('Error loading project:', e);
-                    startNewProject();
-                }
-            } else {
-                startNewProject();
-            }
-        }
-
-        function saveProject() {
-            localStorage.setItem('aiCodeProject', JSON.stringify({
-                currentVersion,
-                projectId,
-                versions,
-                latestCode
-            }));
-        }
-
-        function generateProjectId() {
-            return 'proj-' + Date.now();
-        }
-
-        function startNewProject() {
-            if (currentVersion > 0) {
-                if (!confirm('Start a new project? This will reset the version counter but keep your history.')) {
-                    return;
-                }
-            }
-            
-            currentVersion = 0;
-            projectId = generateProjectId();
-            latestCode = '';
-            // Keep old versions for history
-            updateUI();
-            saveProject();
-            showStatus('✅ New project started! Ready for version 1.', 'success');
-            setTimeout(() => {
-                document.getElementById('status').className = 'status';
-            }, 3000);
-        }
-
-        async function generateNextVersion() {
+        async function generateCode() {
             const prompt = document.getElementById('prompt').value.trim();
             const status = document.getElementById('status');
             const btn = document.getElementById('generateBtn');
             const btnText = document.getElementById('btnText');
             
             if (!prompt) {
-                showStatus('⚠️ Please enter a prompt describing what to create or modify!', 'error');
+                showStatus('⚠️ Please enter a prompt describing what you want to create!', 'error');
                 return;
             }
 
-            const nextVersion = currentVersion + 1;
-            
             btn.disabled = true;
-            btnText.innerHTML = '<span class="spinner"></span> Creating v' + nextVersion + '...';
-            showStatus(`🔄 Generating version ${nextVersion}... This may take 10-30 seconds`, 'loading');
-
-            // Build context-aware prompt
-            let fullPrompt = prompt;
-            if (currentVersion > 0 && latestCode) {
-                fullPrompt = `You are iterating on existing code to create version ${nextVersion}.
-
-CURRENT CODE (v${currentVersion}):
-${latestCode}
-
-USER'S REQUEST FOR v${nextVersion}:
-${prompt}
-
-Please provide the COMPLETE updated HTML code for version ${nextVersion}. Include all previous elements plus the new changes requested.`;
-            } else {
-                fullPrompt = `Create version 1 based on this request:
-${prompt}
-
-Provide complete HTML code.`;
-            }
-
-            // Create version-specific filename
-            const versionFilename = `${projectId}-v${nextVersion}`;
+            btnText.innerHTML = '<span class="spinner"></span> Generating...';
+            showStatus('🔄 AI is generating your code... This may take 10-30 seconds', 'loading');
 
             try {
                 const response = await fetch(WEBHOOK_URL, {
@@ -417,84 +409,49 @@ Provide complete HTML code.`;
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        prompt: fullPrompt,
-                        timestamp: versionFilename
+                        prompt: prompt,
+                        timestamp: Date.now()
                     })
                 });
 
                 const data = await response.json();
                 
                 if (data.success) {
-                    showStatus(`✅ Version ${nextVersion} created!<br>
-                        ⏰ <strong>Wait 1-2 minutes</strong> for deployment.<br>
-                        <button onclick="window.open('${data.file_url}', '_blank')" style="margin-top:10px;padding:8px 15px;background:#28a745;color:white;border:none;border-radius:5px;cursor:pointer;">🔗 Open v${nextVersion} (wait 2 min)</button>`, 'success');
+                    showStatus(`✅ Success! File created: <code>${data.file_url.split('/').pop()}</code><br>
+                        ⏰ <strong>Please wait 1-2 minutes</strong> for GitHub Pages to deploy.<br>
+                        <button onclick="window.open('${data.file_url}', '_blank')" style="margin-top:10px;padding:8px 15px;background:#28a745;color:white;border:none;border-radius:5px;cursor:pointer;font-size:14px;">🔗 Open Output (wait 2 min first)</button>`, 'success');
                     
-                    // Update version tracking
-                    currentVersion = nextVersion;
-                    versions.push({
-                        version: nextVersion,
+                    // Add to outputs list
+                    outputs.unshift({
                         prompt: prompt,
                         url: data.file_url,
                         timestamp: new Date().toLocaleString()
                     });
                     
-                    // Fetch the generated code after delay
-                    setTimeout(async () => {
-                        try {
-                            const codeResponse = await fetch(data.file_url);
-                            if (codeResponse.ok) {
-                                latestCode = await codeResponse.text();
-                                saveProject();
-                            }
-                        } catch (e) {
-                            console.log('Will fetch code later:', e);
+                    // Save to localStorage
+                    localStorage.setItem('aiCodeOutputs', JSON.stringify(outputs));
+                    
+                    // Update gallery
+                    updateGallery();
+                    
+                    // Optional: Auto-open after 2 minutes
+                    setTimeout(() => {
+                        const openNow = confirm('Your output should be ready now! Open it?');
+                        if (openNow) {
+                            window.open(data.file_url, '_blank');
                         }
                     }, 120000); // 2 minutes
                     
-                    updateUI();
-                    saveProject();
-                    document.getElementById('prompt').value = '';
+                    // Clear prompt (optional)
+                    // document.getElementById('prompt').value = '';
                 } else {
-                    showStatus('❌ Error: ' + (data.message || 'Unknown error'), 'error');
+                    showStatus('❌ Error: ' + (data.message || 'Unknown error occurred'), 'error');
                 }
             } catch (error) {
-                showStatus('❌ Error: ' + error.message, 'error');
+                showStatus('❌ Error: ' + error.message + '. Please check your webhook URL.', 'error');
             } finally {
                 btn.disabled = false;
-                btnText.textContent = '🚀 Generate Next Version';
-            }
-        }
-
-        function updateUI() {
-            // Update version badge
-            document.getElementById('currentVersion').textContent = 'v' + currentVersion;
-            
-            // Update version history
-            const historyDiv = document.getElementById('versionHistory');
-            if (versions.length === 0) {
-                historyDiv.innerHTML = '<p style="color: #999; text-align: center; padding: 40px;">No versions yet. Create your first version!</p>';
-                return;
-            }
-            
-            historyDiv.innerHTML = versions.map(v => `
-                <div class="version-item">
-                    <strong>📦 Version ${v.version}</strong>
-                    <div class="prompt">"${v.prompt}"</div>
-                    <div class="meta">
-                        📅 ${v.timestamp}
-                    </div>
-                    <a href="${v.url}" target="_blank">🔗 View v${v.version}</a>
-                </div>
-            `).reverse().join('');
-            
-            // Update context info
-            const contextInfo = document.getElementById('contextInfo');
-            if (currentVersion > 0) {
-                contextInfo.innerHTML = `<strong>🔄 Building on v${currentVersion}</strong><br>
-                    Your next generation will be v${currentVersion + 1} and will build upon the current code.`;
-            } else {
-                contextInfo.innerHTML = `<strong>🆕 Starting Fresh</strong><br>
-                    Your next generation will be v1 - the beginning of a new project!`;
+                btnText.textContent = '🚀 Generate Code';
             }
         }
 
@@ -503,6 +460,54 @@ Provide complete HTML code.`;
             status.innerHTML = message;
             status.className = 'status show ' + type;
         }
+
+        function clearPrompt() {
+            document.getElementById('prompt').value = '';
+            document.getElementById('status').className = 'status';
+        }
+
+        function updateGallery() {
+            const outputList = document.getElementById('outputList');
+            
+            if (outputs.length === 0) {
+                outputList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No outputs yet. Generate your first code above!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            outputList.innerHTML = outputs.map((output, index) => `
+                <div class="output-card">
+                    <h3>Output #${outputs.length - index}</h3>
+                    <p><strong>Prompt:</strong> ${output.prompt.substring(0, 100)}${output.prompt.length > 100 ? '...' : ''}</p>
+                    <p class="timestamp">📅 ${output.timestamp}</p>
+                    <a href="${output.url}" target="_blank">View Output →</a>
+                </div>
+            `).join('');
+        }
+
+        // Load saved outputs on page load
+        window.onload = () => {
+            const saved = localStorage.getItem('aiCodeOutputs');
+            if (saved) {
+                try {
+                    outputs = JSON.parse(saved);
+                    updateGallery();
+                } catch (e) {
+                    console.error('Error loading saved outputs:', e);
+                }
+            }
+        };
+
+        // Allow Enter key to submit (Ctrl+Enter)
+        document.getElementById('prompt').addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                generateCode();
+            }
+        });
     </script>
 </body>
 </html>
